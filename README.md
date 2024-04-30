@@ -54,7 +54,7 @@ Open your browser and visit `http://localhost:3000` to view the application.
 
 ## Troubleshooting
 
-If you run into any problems, you can contact `jojogong3736@gmail.com` or start an issue on the project's [GitHub issue tracker](<GitHub-issue-tracker-URL-here>).
+If you run into any problems, you can contact `jojogong3736@gmail.com` or start an issue on the project's [GitHub issue tracker](https://github.com/UtGong/time-folder/issues).
 
 ## Contributing
 
@@ -62,4 +62,4 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduc
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the Apache-2.0 license - see the [LICENSE.md](LICENSE.md) file for details
