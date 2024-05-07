@@ -2,6 +2,8 @@
 
 Interactive user interface for Time-Folder, A Generic Framework for Nonlinear Visualization of Ultra-long Time-oriented Data.
 
+Deployed at [https://github.com/UtGong/time-folder](https://github.com/UtGong/time-folder)
+
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
