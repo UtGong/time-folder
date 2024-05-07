@@ -22,7 +22,7 @@ function MainArea() {
         : '/home/jojogong3736/mysite/backend/data/Foreign_Exchange_Rates_Filled_Corrected.csv';
 
       try {
-        const response = await fetch('http://jojogong3736.pythonanywhere.com/get-columns', {
+        const response = await fetch('https://jojogong3736.pythonanywhere.com/get-columns', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ dataPath }),
@@ -98,7 +98,7 @@ function MainArea() {
         return;
     }
     try {
-      const response = await fetch("http://jojogong3736.pythonanywhere.com/visualize", {
+      const response = await fetch("https://jojogong3736.pythonanywhere.com/visualize", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
