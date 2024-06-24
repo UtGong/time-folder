@@ -2,7 +2,7 @@
 
 Interactive user interface for Time-Folder, A Generic Framework for Nonlinear Visualization of Ultra-long Time-oriented Data.
 
-Deployed at [[https://github.com/UtGong/time-folder](https://time-folder.vercel.app/)](https://time-folder.vercel.app/)
+Deployed at [https://time-folder.vercel.app/](https://time-folder.vercel.app/)
 
 ## Getting Started
 
