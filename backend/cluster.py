@@ -39,7 +39,6 @@ def fold_timeline(tfs, random_seeds, weight):
     return folded_tfs
 
 def find_mdl(tfs, weight, MAX_ITER=1):
-    # TODO: random seeds
     best_tfs = tfs
     min_dl = sum(calculate_data_dl([tf], weight) for tf in tfs)
     for i in range(MAX_ITER):

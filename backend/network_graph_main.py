@@ -3,50 +3,48 @@ import time
 import argparse
 from cluster import find_mdl
 from data import build_time_frames
-from network_graph.data_transformation import clean_data, create_node_link_graph, data_transformation
+from network_graph.data_transformation import clean_data, data_transformation
 
-def main(data_name, weight):
-    # Clean the data for the specified dataset name
+def load_and_transform_data(data_name):
     data = clean_data(data_name, 7)
     print("Starting data transformation...")
     start_time = time.time()
     
-    # Perform data transformation
     ts_data = data_transformation(data)
     elapsed_time = time.time() - start_time
     print("Data transformation completed in", elapsed_time, "seconds")
+    
+    return data, ts_data
 
-    # Build time frames for analysis
+def run_algorithm(data_name, weight):
+    data, ts_data = load_and_transform_data(data_name)
+    
     print("Start find mdl")
     tfs = build_time_frames(ts_data, 'time_value', ['value'])
+    original_timeline_length = len(tfs)
     
     start_time = time.time()
-    # Find the most descriptive timeline model using the given weight
     best_folded_timeline, min_dl = find_mdl(tfs, weight=weight)
+    folded_timeline_length = len(best_folded_timeline)
     elapsed_time = time.time() - start_time
     print("MDL process runtime:", elapsed_time, "seconds")
+    print("Original length:", original_timeline_length)
+    print("Best folded timeline length:", folded_timeline_length)
     
-    # Filter data for specific dates
     dates = [point.start_point.time_value for point in best_folded_timeline]
     dates.append(best_folded_timeline[-1].end_point.time_value)
     df = data[data['dep_time'].isin(dates) & data['arr_time'].isin(dates)]
     
-    # Prepare the output directory
     output_path = os.path.join('output/network_graph/', data_name)
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
-    # Create and save the initial graph
-    G = create_node_link_graph(data)
-    init_graph_path = os.path.join(output_path, "init.png")
-    G.savefig(init_graph_path)
-    
-    # Create and save the graph after transformations
-    G_merged = create_node_link_graph(df)
-    folded_graph_path = os.path.join(output_path, "folded.png")
-    G_merged.savefig(folded_graph_path)
+    data.to_pickle('transformed_data.pkl')
+    df.to_pickle('filtered_data.pkl')
+    with open('meta_ng.txt', 'w') as f:
+        f.write(f"{data_name},{weight},{output_path}")
 
-    return init_graph_path, folded_graph_path
+    return data, df, output_path, elapsed_time, original_timeline_length, folded_timeline_length
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Process data and generate network graphs.')
@@ -56,4 +54,7 @@ def parse_arguments():
 
 if __name__ == "__main__":
     args = parse_arguments()
-    main(args.data_name, args.weight)
+    data, df, output_path, runtime, original_length, folded_length = run_algorithm(args.data_name, args.weight)
+    print(f"Algorithm runtime: {runtime} seconds")
+    print(f"Original timeline length: {original_length}")
+    print(f"Folded timeline length: {folded_length}")

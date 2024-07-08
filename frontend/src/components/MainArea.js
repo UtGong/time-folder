@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import VisualizationDisplay from "./VisualizationDisplay";
+import AlgorithmResults from "./AlgorithmResults"; // Import the AlgorithmResults component
 
 function MainArea() {
   const [visualizationType, setVisualizationType] = useState("Time Series");
@@ -11,7 +12,11 @@ function MainArea() {
   const [initGraphPath, setInitGraphPath] = useState(""); // Initial graph image path
   const [foldedGraphPath, setFoldedGraphPath] = useState(""); // Folded graph image path
   const [isLoading, setIsLoading] = useState(false); // Loading state to manage UI during fetch
+  const [algorithmLoading, setAlgorithmLoading] = useState(false); // Loading state for algorithm results
+  const [algorithmResult, setAlgorithmResult] = useState(null); // Algorithm result state
+  const [buttonClicked, setButtonClicked] = useState(false); // Button clicked state
 
+  const algorithmRef = useRef(null);
   const visualizationRef = useRef(null);
 
   useEffect(() => {
@@ -22,7 +27,7 @@ function MainArea() {
         : '/home/jojogong3736/mysite/backend/data/Foreign_Exchange_Rates_Filled_Corrected.csv';
 
       try {
-        const response = await fetch('https://jojogong3736.pythonanywhere.com/get-columns', {
+        const response = await fetch('http://jojogong3736.pythonanywhere.com/get-columns', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ dataPath }),
@@ -40,6 +45,13 @@ function MainArea() {
   }, [visualizationType]);
 
   useEffect(() => {
+    // Scroll to the algorithm results when they are ready
+    if (algorithmResult && !algorithmLoading) {
+      algorithmRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [algorithmResult, algorithmLoading]);
+
+  useEffect(() => {
     // Scroll to the visualization section when images are loaded
     if (initGraphPath && foldedGraphPath && !isLoading) {
       visualizationRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -48,6 +60,8 @@ function MainArea() {
 
   const handleSubmit = async () => {
     setIsLoading(true);
+    setAlgorithmLoading(true); // Set algorithm loading state to true
+    setButtonClicked(true); // Set button clicked state to true
     let payload;
     switch (visualizationType) {
       case "Time Series":
@@ -82,7 +96,7 @@ function MainArea() {
       case "Extended Gantt Graph":
         payload = {
           script_name: "ss_main",
-          data_name: "HR",
+          data_name: "/home/jojogong3736/mysite/backend/data/HR",
           weight: weight,
         };
         break;
@@ -98,7 +112,7 @@ function MainArea() {
         return;
     }
     try {
-      const response = await fetch("https://jojogong3736.pythonanywhere.com/visualize", {
+      const response = await fetch("https://jojogong3736.pythonanywhere.com/run-algorithm", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -112,7 +126,34 @@ function MainArea() {
       const data = await response.json(); // Parsing the JSON response body
       console.log(data);
 
-      // Assuming data contains base64 encoded images
+      if (data.runtime && data.original_length && data.folded_length) {
+        setAlgorithmResult(data);
+        setAlgorithmLoading(false); // Set algorithm loading state to false
+        callVisualizationEndpoint(payload.script_name);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setIsLoading(false);
+      setAlgorithmLoading(false); // Set algorithm loading state to false
+    }
+  };
+
+  const callVisualizationEndpoint = async (script_name) => {
+    try {
+      const response = await fetch("https://jojogong3736.pythonanywhere.com/visualize", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ script_name }),
+      });
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const data = await response.json();
+      console.log(data);
+
       if (data.init_image && data.folded_image) {
         setInitGraphPath(data.init_image);
         setFoldedGraphPath(data.folded_image);
@@ -141,7 +182,7 @@ function MainArea() {
   };
 
   return (
-    <div className="flex flex-col gap-6 p-24 h-full bg-gradient-to-br from-violet-100  to-violet-300">
+    <div className="flex flex-col gap-6 p-12 h-full bg-gradient-to-br from-violet-100  to-violet-300">
       <div className="flex gap-4 items-center bg-white shadow-xl rounded-lg p-4">
         <div className="flex flex-col flex-1">
           <label
@@ -162,31 +203,6 @@ function MainArea() {
             <option value="Relationship Graph">Relationship Graph</option>
           </select>
         </div>
-        <div className="flex flex-col flex-1">
-          <label
-            htmlFor="weight"
-            className="mb-1 text-violet-700 text-sm font-bold"
-          >
-            Weight (Larger values fold more time frames):
-          </label>
-          <input
-            type="range"
-            id="weight"
-            min="0"
-            max={weightSliderRange === "0-1" ? "1" : "20"}
-            step={weightSliderRange === "0-1" ? "0.01" : "1"}
-            value={weight}
-            onChange={handleWeightChange}
-            className="flex-1 h-2 bg-violet-200 rounded-full appearance-none cursor-pointer transition-colors duration-200 ease-in-out"
-          />
-          <span className="text-violet-700 font-medium">{weight.toFixed(2)}</span>
-        </div>
-        <button
-          onClick={handleWeightSliderRangeChange}
-          className="bg-violet-200 text-violet-800 font-bold py-2 px-4 rounded"
-        >
-          {weightSliderRange === "0-1" ? "Switch to 0-20" : "Switch to 0-1"}
-        </button>
       </div>
       {(visualizationType === "Time Series" ||
         visualizationType === "Stack Graph") && (
@@ -210,6 +226,31 @@ function MainArea() {
           </div>
         </div>
       )}
+      <div className="flex gap-4 items-center bg-white shadow-xl rounded-lg p-4">
+        <label
+          htmlFor="weight"
+          className="mb-1 text-violet-700 text-sm font-bold"
+        >
+          Weight (Larger values fold more time frames):
+        </label>
+        <input
+          type="range"
+          id="weight"
+          min="0"
+          max={weightSliderRange === "0-1" ? "1" : "20"}
+          step={weightSliderRange === "0-1" ? "0.01" : "1"}
+          value={weight}
+          onChange={handleWeightChange}
+          className="flex-1 h-3 bg-violet-200 rounded-full appearance-none cursor-pointer transition-colors duration-200 ease-in-out"
+        />
+        <span className="text-violet-700 font-medium">{weight.toFixed(2)}</span>
+        <button
+          onClick={handleWeightSliderRangeChange}
+          className="bg-violet-200 text-violet-800 font-bold py-2 px-4 rounded"
+        >
+          {weightSliderRange === "0-1" ? "Switch to 0-20" : "Switch to 0-1"}
+        </button>
+      </div>
       <button
         onClick={handleSubmit}
         disabled={isLoading}
@@ -237,13 +278,18 @@ function MainArea() {
             ></path>
           </svg>
         )}
-        {isLoading ? "Loading..." : "Submit"}
+        {isLoading ? "Loading..." : buttonClicked ? "Update" : "Start"}
       </button>
+      <div ref={algorithmRef}>
+        <AlgorithmResults algorithmLoading={algorithmLoading} algorithmResult={algorithmResult} />
+      </div>
       <div ref={visualizationRef}>
         <VisualizationDisplay
           initGraphPath={initGraphPath}
           foldedGraphPath={foldedGraphPath}
           isLoading={isLoading}
+          algorithmResult={algorithmResult}
+          buttonClicked={buttonClicked} // Pass buttonClicked state to VisualizationDisplay
         />
       </div>
     </div>

@@ -6,10 +6,6 @@ from matplotlib.ticker import MaxNLocator
 import matplotlib.dates as mdates
 from pandas import to_datetime
 
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
-import numpy as np
-
 def generic_plot_setup(title, xlabel, ylabel, y_start, y_end, gap, dates=None, values=None, rotation=None, x_ticks=None, series_labels=None):
     plt.figure(figsize=(12, 6))
 
@@ -53,7 +49,7 @@ def draw_init_line_plot(data, date_column, value_column, y_start, y_end, gap):
     dates = to_datetime(data[date_column])
     # Ensure values is a list of numeric arrays
     values = [data[column].astype(float).values for column in value_column]
-    return generic_plot_setup('Value Over Time', 'Date', 'Value', y_start, y_end, gap, dates, values)
+    return generic_plot_setup('Value Over Time', 'Date', 'Value', y_start, y_end, gap, dates, values, series_labels=value_column)
 
 def nonlinear_plot_setup(title, xlabel, ylabel, y_start, y_end, gap, dates=None, values=None, rotation=None, x_ticks=None):
     plt.figure(figsize=(12, 6))
@@ -97,11 +93,6 @@ def draw_merged_line_plot_non_linear(data, date_column, value_column, y_start, y
     
     print("Merged data length: ", len(values))
     return plt_obj
-
-# def draw_merged_line_plot(data, y_start, y_end, gap):
-#     values = [point.start_point.data for point in data]
-#     dates = [point.start_point.time_value for point in data]
-#     return generic_plot_setup('Value Over Time', 'Date', 'Value', y_start, y_end, gap, dates, values, line_color='blue')
 
 def draw_merged_line_plot(data, y_start, y_end, gap):
     values = [point.start_point.data for point in data]
