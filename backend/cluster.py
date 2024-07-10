@@ -26,7 +26,7 @@ def fold_time_frames(tfs, random_seeds, weight):
         if idx == len(tfs) - 1:
             new_tfs = combine_time_frames(folding_list)
             folded_list = folded_list + new_tfs
-    
+
     return folded_list
 
 def fold_timeline(tfs, random_seeds, weight):

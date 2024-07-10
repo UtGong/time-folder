@@ -24,7 +24,7 @@ def run_algorithm(data_name, weight):
     df, output_path = load_and_transform_data(data_name)
 
     data_file_name = 'ss_to_ts'
-    csv_file_path = os.path.join('./data', data_file_name + '.csv')
+    csv_file_path = os.path.join('/home/jojogong3736/mysite/backend/data', data_file_name + '.csv')
     date_column = 'time_value'
     value_column = ["tp_value"]
 

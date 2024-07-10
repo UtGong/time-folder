@@ -9,32 +9,34 @@ def load_and_transform_data(data_name):
     data = clean_data(data_name, 7)
     print("Starting data transformation...")
     start_time = time.time()
-    
+
     ts_data = data_transformation(data)
     elapsed_time = time.time() - start_time
     print("Data transformation completed in", elapsed_time, "seconds")
-    
+
     return data, ts_data
 
 def run_algorithm(data_name, weight):
     data, ts_data = load_and_transform_data(data_name)
-    
-    print("Start find mdl")
+
+    print("Start building frames")
     tfs = build_time_frames(ts_data, 'time_value', ['value'])
     original_timeline_length = len(tfs)
-    
+
     start_time = time.time()
+    print("Start finding mdl")
     best_folded_timeline, min_dl = find_mdl(tfs, weight=weight)
+    print("done finding mdl")
     folded_timeline_length = len(best_folded_timeline)
     elapsed_time = time.time() - start_time
     print("MDL process runtime:", elapsed_time, "seconds")
     print("Original length:", original_timeline_length)
     print("Best folded timeline length:", folded_timeline_length)
-    
+
     dates = [point.start_point.time_value for point in best_folded_timeline]
     dates.append(best_folded_timeline[-1].end_point.time_value)
     df = data[data['dep_time'].isin(dates) & data['arr_time'].isin(dates)]
-    
+
     output_path = os.path.join('output/network_graph/', data_name)
     if not os.path.exists(output_path):
         os.makedirs(output_path)
