@@ -26,20 +26,20 @@ def paa(ts, paa_rate, alphabet_size=4):
 def save_paa_ts_plot():
 
     # Load the CSV file
-    file_path = '../../backend\data\StnData_2020-2023_dailytemp.csv'  # Update this to your file path
+    file_path = '../../backend\data\Foreign_Exchange_Rates_Filled_Corrected.csv'  # Update this to your file path
     data = pd.read_csv(file_path)
 
     # Define the PAA rate and output filename
     paa_rate = 0.016  # Example rate
-    filename = 'paa_ts.png'
+    filename = 'paa_ts_ER.png'
     # Extract the 'Max' column
-    max_temps = data['Max'].tolist()
+    max_temps = data['TAIWAN - NEW TAIWAN DOLLAR/US$'].tolist()
 
     # Apply the PAA function
     paa_result = paa(max_temps, paa_rate)
 
-    # print("paa_result", paa_result)
-    # print("Original data", max_temps)
+    print("paa_result", len(paa_result))
+    print("Original data", len(max_temps))
 
     # Generate x-values for the PAA result to match the reduced segments
     x_values = [i * (len(max_temps) / len(paa_result)) for i in range(len(paa_result))]
@@ -48,9 +48,9 @@ def save_paa_ts_plot():
     plt.figure(figsize=(14, 7))
 
     # Plot the PAA reduced Max temperatures directly
-    plt.plot(x_values, paa_result, label='PAA Reduced Max Temperatures', linewidth=2, color='red')
+    plt.plot(x_values, paa_result, label='PAA Reduced', linewidth=2, color='red')
     plt.xlabel('Day')
-    plt.ylabel('Max Temperature')
+    plt.ylabel('Exchange Rate')
     plt.title('Original vs PAA Reduced Max Temperatures')
     plt.legend()
 
