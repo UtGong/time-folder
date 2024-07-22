@@ -124,7 +124,7 @@ print("length of original data: ", len(S_scaled))
 print("length of compressed_dates: ", len(compressed_dates))
 
 def plot_worker_status(data_long, compressed_dates):
-    plt.figure(figsize=(14, 7))
+    plt.figure(figsize=(12, 6))
     
     # Ensure the x-axis contains the entire range of dates from the original dataset
     dates = pd.to_datetime(data_long['Date'].unique())

@@ -20,7 +20,7 @@ def generic_plot_setup(title, xlabel, ylabel, y_start, y_end, gap, dates=None, v
             # Plot each series with a line and label for legend
             plt.plot(dates, series, label=label)
             # Fill the area under each line
-            plt.fill_between(dates, series, alpha=0.3)  # Adjust alpha for fill transparency
+            # plt.fill_between(dates, series, alpha=0.3)  # Adjust alpha for fill transparency
 
     plt.title(title, fontsize=14)
     plt.xlabel(xlabel, fontsize=12)
@@ -30,14 +30,14 @@ def generic_plot_setup(title, xlabel, ylabel, y_start, y_end, gap, dates=None, v
 
     plt.ylim(y_start, y_end)
     plt.yticks(np.arange(y_start, y_end + gap, step=gap))
-    
+
     if rotation is not None and x_ticks is not None:
         # If x_ticks are provided and need rotation, adjust accordingly
         # This part might need refinement based on the specific datetime handling
         if not isinstance(x_ticks[0], (float, int)):
             x_ticks = mdates.date2num(x_ticks)
         plt.xticks(x_ticks, rotation=rotation)
-    
+
     # Display the legend
     plt.legend()
 
@@ -62,7 +62,7 @@ def nonlinear_plot_setup(title, xlabel, ylabel, y_start, y_end, gap, dates=None,
         for series in values:
             plt.plot(x_values, series)
             # Fill the area under each line
-            plt.fill_between(x_values, series, alpha=0.3)  # Adjust alpha for fill transparency
+            # plt.fill_between(x_values, series, alpha=0.3)  # Adjust alpha for fill transparency
 
     plt.title(title, fontsize=14)
     plt.xlabel(xlabel, fontsize=12)
@@ -72,7 +72,7 @@ def nonlinear_plot_setup(title, xlabel, ylabel, y_start, y_end, gap, dates=None,
 
     plt.ylim(y_start, y_end)
     plt.yticks(np.arange(y_start, y_end + gap, step=gap))
-    
+
     # Set x-axis tick labels to the corresponding dates, rotated if specified
     if rotation is not None:
         plt.xticks(x_values, dates, rotation=rotation)
@@ -84,20 +84,20 @@ def nonlinear_plot_setup(title, xlabel, ylabel, y_start, y_end, gap, dates=None,
 def draw_merged_line_plot_non_linear(data, date_column, value_column, y_start, y_end, gap):
     # Convert each column into a list of floats for plotting
     values = [data[column].astype(float).values for column in value_column]
-    
+
     # Get dates for tick labels
     dates = data[date_column].dt.strftime('%Y-%m-%d').tolist()  # Or any other string format you prefer
-    
+
     # Call the generic plot setup with evenly distributed x-values and provided values
     plt_obj = nonlinear_plot_setup('Value Over Time', 'Date', 'Value', y_start, y_end, gap, dates, values, rotation=45)
-    
+
     print("Merged data length: ", len(values))
     return plt_obj
 
 def draw_merged_line_plot(data, y_start, y_end, gap):
     values = [point.start_point.data for point in data]
     values += data[-1].end_point.data
-    dates = [to_datetime(point.start_point.time_value) for point in data]  
+    dates = [to_datetime(point.start_point.time_value) for point in data]
     print(to_datetime(data[-1].end_point.time_value))
     dates.append(to_datetime(data[-1].end_point.time_value))
 
@@ -105,13 +105,13 @@ def draw_merged_line_plot(data, y_start, y_end, gap):
     plt_obj = generic_plot_setup(
         'Value Over Time', 'Date', 'Value', y_start, y_end, gap, dates, values
     )
-    
+
     # Adjust the x-axis to handle the datetime objects
     plt_obj.gca().xaxis_date()  # Interpret the x-axis values as dates
     plt_obj.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
     plt_obj.gca().xaxis.set_major_formatter(mdates.ConciseDateFormatter(mdates.AutoDateLocator()))
     plt_obj.gcf().autofmt_xdate()  # Rotate date labels automatically
-    
+
     return plt_obj
 
 def compute_y_axis_parameters(y_min, y_max):
