@@ -16,7 +16,7 @@ function Header() {
               }} className="text-lg font-bold">Time Folder</h1>
             </div>
             <nav>
-                <a href="https://github.com/UtGong/time-folder" className="p-2 hover:bg-blue-700 rounded">GitHub</a>
+                {/* <a href="https://github.com/UtGong/time-folder" className="p-2 hover:bg-blue-700 rounded">GitHub</a> */}
                 {/* Add more navigation links as needed */}
             </nav>
         </header>

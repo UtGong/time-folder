@@ -2,7 +2,7 @@ from data import combine_time_frames
 from description_length import calculate_total_dl, calculate_data_dl
 
 def generate_random_seeds():
-    return [0]
+    return [0, 177, 183, 200, 300, 305]
 
 def fold_time_frames(tfs, random_seeds, weight):
     folding_list = []

@@ -8,11 +8,11 @@ from pandas import to_datetime
 
 def generic_plot_setup(title, xlabel, ylabel, y_start, y_end, gap, dates=None, values=None, rotation=None, x_ticks=None, series_labels=None):
     plt.figure(figsize=(12, 6))
-
     if dates is not None and values is not None:
         # Convert dates to matplotlib date format if they're not already
-        if not isinstance(dates[0], (float, int)):
-            dates = mdates.date2num(dates)
+        # if not isinstance(dates[0], (float, int)):
+        #     dates = mdates.date2num(dates)
+        #     print("dates (updated)", dates)
 
         # Assuming values is a list of lists where each inner list is a series
         for index, series in enumerate(values):
@@ -25,7 +25,7 @@ def generic_plot_setup(title, xlabel, ylabel, y_start, y_end, gap, dates=None, v
     plt.title(title, fontsize=14)
     plt.xlabel(xlabel, fontsize=12)
     plt.ylabel(ylabel, fontsize=12)
-    plt.grid(True, which='both', linestyle='--', linewidth=0.5)
+    plt.grid(False)
     plt.tight_layout()
 
     plt.ylim(y_start, y_end)
@@ -51,35 +51,147 @@ def draw_init_line_plot(data, date_column, value_column, y_start, y_end, gap):
     values = [data[column].astype(float).values for column in value_column]
     return generic_plot_setup('Value Over Time', 'Date', 'Value', y_start, y_end, gap, dates, values, series_labels=value_column)
 
+# def nonlinear_plot_setup(title, xlabel, ylabel, y_start, y_end, gap, dates=None, values=None, rotation=None, x_ticks=None):
+#     plt.figure(figsize=(12, 6))
+
+#     if dates is not None and values is not None:
+#         # Use a range object as the x-axis values to distribute points evenly
+#         x_values = range(len(dates))
+
+#         # Plot each series with a line, using x_values for even distribution
+#         for series in values:
+#             plt.plot(x_values, series)
+#             # Fill the area under each line
+#             # plt.fill_between(x_values, series, alpha=0.3)  # Adjust alpha for fill transparency
+
+#     plt.title(title, fontsize=14)
+#     plt.grid(False)
+#     plt.xlabel(xlabel, fontsize=12)
+#     plt.ylabel(ylabel, fontsize=12)
+#     plt.tight_layout()
+
+#     plt.ylim(y_start, y_end)
+#     plt.yticks(np.arange(y_start, y_end + gap, step=gap))
+
+#     # Set x-axis tick labels to the corresponding dates, rotated if specified
+#     if rotation is not None:
+#         plt.xticks(x_values, dates, rotation=rotation)
+#     else:
+#         plt.xticks(x_values, dates)  # Apply dates as labels without rotation
+
+#     return plt
+
+# def nonlinear_plot_setup(title, xlabel, ylabel, y_start, y_end, gap, dates=None, values=None, rotation=None, x_ticks=None):
+#     plt.figure(figsize=(12, 6))
+
+#     if dates is not None and values is not None:
+#         # Plot each series using the actual datetime objects for the x-axis
+#         for series in values:
+#             plt.plot(dates, series)
+#             # Optional: Fill the area under each line
+#             # plt.fill_between(dates, series, alpha=0.3)
+
+#     plt.title(title, fontsize=14)
+#     plt.grid(False)
+#     plt.xlabel(xlabel, fontsize=12)
+#     plt.ylabel(ylabel, fontsize=12)
+#     plt.tight_layout()
+
+#     # Set y-axis limits and ticks
+#     plt.ylim(y_start, y_end)
+#     plt.yticks(np.arange(y_start, y_end + gap, step=gap))
+
+#     # Format the x-axis to handle date formatting
+#     plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
+#     plt.gca().xaxis.set_major_formatter(mdates.ConciseDateFormatter(mdates.AutoDateLocator()))
+
+#     # Rotate x-axis labels if specified
+#     if rotation is not None:
+#         plt.xticks(rotation=rotation)
+
+#     plt.gcf().autofmt_xdate()  # Automatically format and rotate date labels if needed
+
+#     return plt
+
+import matplotlib.dates as mdates
+
+# def nonlinear_plot_setup(title, xlabel, ylabel, y_start, y_end, gap, dates=None, values=None, rotation=None, x_ticks=None, date_format="%Y-%m-%d"):
+#     plt.figure(figsize=(12, 6))
+#     print("Dates!!!!!", dates)
+#     if dates is not None and values is not None:
+#         # Plot each series using the actual datetime objects for the x-axis
+#         for series in values:
+#             plt.plot(dates, series)
+#             # Optional: Fill the area under each line
+#             # plt.fill_between(dates, series, alpha=0.3)
+
+#     plt.title(title, fontsize=14)
+#     plt.grid(False)
+#     plt.xlabel(xlabel, fontsize=12)
+#     plt.ylabel(ylabel, fontsize=12)
+#     plt.tight_layout()
+
+#     # Set y-axis limits and ticks
+#     plt.ylim(y_start, y_end)
+#     plt.yticks(np.arange(y_start, y_end + gap, step=gap))
+
+#     # Set exact date labels on the x-axis
+#     plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
+#     plt.gca().xaxis.set_major_formatter(mdates.DateFormatter(date_format))  # Use exact date format
+
+#     # Rotate x-axis labels if specified
+#     if rotation is not None:
+#         plt.xticks(rotation=rotation)
+
+#     plt.gcf().autofmt_xdate()  # Automatically format and rotate date labels if needed
+
+#     return plt
+
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+import pandas as pd
+
+import pandas as pd
+import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
+
+import matplotlib.pyplot as plt
+
 def nonlinear_plot_setup(title, xlabel, ylabel, y_start, y_end, gap, dates=None, values=None, rotation=None, x_ticks=None):
     plt.figure(figsize=(12, 6))
+    
+    # Treat dates as categorical labels for equally spaced points
+    x_values = range(len(dates))  # Generate equally spaced x-values for the data points
+
+    print("X-values (equally spaced):", x_values)  # Print equally spaced x-values for debugging
+    print("Dates (as labels):", dates)  # Print corresponding dates for reference
 
     if dates is not None and values is not None:
-        # Use a range object as the x-axis values to distribute points evenly
-        x_values = range(len(dates))
-
-        # Plot each series with a line, using x_values for even distribution
+        # Plot each series using the equally spaced x-values
         for series in values:
             plt.plot(x_values, series)
-            # Fill the area under each line
-            # plt.fill_between(x_values, series, alpha=0.3)  # Adjust alpha for fill transparency
 
     plt.title(title, fontsize=14)
+    plt.grid(False)
     plt.xlabel(xlabel, fontsize=12)
     plt.ylabel(ylabel, fontsize=12)
-    plt.grid(True, which='both', linestyle='--', linewidth=0.5)
     plt.tight_layout()
 
+    # Set y-axis limits and ticks
     plt.ylim(y_start, y_end)
     plt.yticks(np.arange(y_start, y_end + gap, step=gap))
 
-    # Set x-axis tick labels to the corresponding dates, rotated if specified
+    # Set x-ticks to the generated equally spaced values, using the dates as labels
+    plt.xticks(x_values, dates)  # Use the dates as the labels for equally spaced x-values
+
+    plt.legend(labels=["Max", "Min"])
+    # Rotate x-axis labels if specified
     if rotation is not None:
-        plt.xticks(x_values, dates, rotation=rotation)
-    else:
-        plt.xticks(x_values, dates)  # Apply dates as labels without rotation
+        plt.xticks(rotation=rotation)
+    plt.gcf().autofmt_xdate()  # Automatically format and rotate date labels if needed
 
     return plt
+
 
 def draw_merged_line_plot_non_linear(data, date_column, value_column, y_start, y_end, gap):
     # Convert each column into a list of floats for plotting

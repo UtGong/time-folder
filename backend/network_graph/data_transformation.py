@@ -33,7 +33,7 @@ def round_to_nearest(t, round_to_minute):
 
 def clean_data(file_name, duration):
     # data = pd.read_csv(file_name + ".csv")
-    data = pd.read_csv("/home/jojogong3736/mysite/backend/data/" + file_name + ".csv")
+    data = pd.read_csv("/Users/jojog/Desktop/research/TimeFolder/time-folder/backend/data/" + file_name + ".csv")
     data = data.dropna()
 
     # column year + month + day to date
@@ -135,5 +135,5 @@ def data_transformation(df):
     analysis_df['arr_value'] = analysis_df['arr_count'] / analysis_df['value']
     # save analysis_df to csv
     # analysis_df.to_csv("./data/analysis_df.csv", index=False)
-    analysis_df.to_csv("/home/jojogong3736/mysite/backend/data/analysis_df.csv", index=False)
+    analysis_df.to_csv("/Users/jojog/Desktop/research/TimeFolder/time-folder/backend/data/analysis_df.csv", index=False)
     return analysis_df

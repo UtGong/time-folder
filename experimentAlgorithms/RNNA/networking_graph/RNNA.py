@@ -6,6 +6,9 @@ from scipy.interpolate import interp1d
 from tensorflow.keras.models import load_model
 from sklearn.preprocessing import MinMaxScaler
 import matplotlib.pyplot as plt
+import networkx as nx
+from matplotlib.path import Path
+import matplotlib.patches as mpatches
 
 def round_to_nearest(t, round_to_minute):
     if round_to_minute <= 0 or round_to_minute >= 60:
@@ -47,7 +50,7 @@ data = data.drop(columns=['time_value']).apply(pd.to_numeric, errors='coerce').f
 dep_count_series = data['dep_count'].values
 arr_count_series = data['arr_count'].values
 
-# Combine these series into a 2D array for RNNA
+# Combine these series into a 2D array for RAE
 time_series_data = np.vstack([dep_count_series, arr_count_series])
 
 # Load the trained RAE model
@@ -102,7 +105,7 @@ def adaptive_pairwise_compression(S, rae_model, max_deviation, rae_len):
 
 # Set the parameters for compression
 max_deviation = 1  # Adjusted max deviation for more lenient compression
-rae_len = 20  # Adjusted length for the RAE model        
+rae_len = 20  # Adjusted length for the RAE model
 
 compressed_segments = adaptive_pairwise_compression(temps_scaled, rae_model, max_deviation, rae_len)
 compressed_series = [item[2] for item in compressed_segments]  # Extract only the compressed data
@@ -115,34 +118,25 @@ compressed_series_scaled = scaler.inverse_transform(compressed_series_flattened)
 compressed_indices = np.linspace(0, len(time_values) - 1, len(compressed_series_scaled), endpoint=True, dtype=int)
 kept_time_values = time_values.iloc[compressed_indices].reset_index(drop=True)
 
-# Debug print
-# print("Kept time values:", kept_time_values)
-
 # Load the original flights data for filtering
 cleaned_data = clean_data(7)
-
-# Debug print
-print("Cleaned data columns:", cleaned_data.columns)
 
 # Ensure kept_time_values is of string type
 kept_time_values = kept_time_values.astype(str)
 
 # Filter the original data for dep_time and arr_time in kept_time_values
-filtered_data = cleaned_data[cleaned_data['dep_time'].astype(str).isin(kept_time_values) & cleaned_data['arr_time'].astype(str).isin(kept_time_values)]
+filtered_data = cleaned_data[
+    cleaned_data['dep_time'].astype(str).isin(kept_time_values) &
+    cleaned_data['arr_time'].astype(str).isin(kept_time_values)
+]
 
 print('Original data shape:', time_series_data.shape)
 print('Compressed data shape:', compressed_series_scaled.shape)
-print('Filtered data:', filtered_data.shape)
+print('Filtered data shape:', filtered_data.shape)
 
 # Measure and print runtime
 run_time = time.time() - start_time
 print('Runtime:', run_time)
-
-import networkx as nx
-import matplotlib.pyplot as plt
-from matplotlib.path import Path
-import matplotlib.patches as mpatches
-import numpy as np
 
 def draw_edge_with_gradient(u, v, pos, ax, cmap=plt.cm.coolwarm, lw=1):
     spos = np.array(pos[u])
@@ -161,6 +155,44 @@ def draw_edge_with_gradient(u, v, pos, ax, cmap=plt.cm.coolwarm, lw=1):
         segment_end = spos + (epos - spos) * ((j + 1) / num_steps)
         ax.plot([segment_start[0], segment_end[0]], [segment_start[1], segment_end[1]], color=color, lw=lw)
 
+# def draw_rotated_labels(G, pos, ax, distance_factor=1.1):
+#     for node, (x, y) in pos.items():
+#         angle = np.degrees(np.arctan2(y, x))
+#         # Adjust the rotation angle for readability (flip for top vs bottom half)
+#         if x > 0:
+#             rotation = angle
+#         else:
+#             rotation = angle + 180
+
+#         # Adjust label distance from the node
+#         label_x = x * distance_factor
+#         label_y = y * distance_factor
+
+#         ax.text(label_x, label_y, str(node), size=8, rotation=rotation,
+#                 rotation_mode='anchor', ha='center', va='center')
+def draw_rotated_labels(G, pos, ax, distance_factor=1.2):
+    for node, (x, y) in pos.items():
+        # Only label nodes that represent whole hours (i.e., minutes and seconds are 0)
+        # if node.minute == 0 and node.second == 0:
+            # Format the label to show only 'HH:MM' in 24-hour format (e.g., '13:00')
+        label = node.strftime("%H:%M")  # 24-hour format
+
+        angle = np.degrees(np.arctan2(y, x))
+        
+        # Adjust the rotation angle for readability (flip for top vs bottom half)
+        if x > 0:
+            rotation = angle
+        else:
+            rotation = angle + 180
+
+        # Adjust label distance from the node
+        label_x = x * distance_factor
+        label_y = y * distance_factor
+
+        # Draw the label at the computed position with rotation
+        ax.text(label_x, label_y, label, size=12, rotation=rotation,
+                rotation_mode='anchor', ha='center', va='center')
+
 def create_node_link_graph(df):
     G = nx.DiGraph()
     unique_time_values = pd.concat([df['dep_time'], df['arr_time']]).unique()
@@ -175,25 +207,34 @@ def create_node_link_graph(df):
     node_sizes = [G.degree(node) * 10 for node in G.nodes()]
     max_degree = max(G.degree(node) for node in G.nodes())
     node_alphas = {node: 0.4 + 0.6 * (G.degree(node) / max_degree) for node in G.nodes()}
+    
+    # Create a circular layout for the graph
+    pos = nx.circular_layout(G)
 
-    circle_pos = nx.circular_layout(G)
+    # Create figure and axis
+    fig, ax = plt.subplots(figsize=(10, 10))
 
-    fig, ax = plt.subplots(figsize=(12, 12))
-
+    # Draw nodes with specific alpha values
     for node, size in zip(G.nodes(), node_sizes):
-        nx.draw_networkx_nodes(G, circle_pos, nodelist=[node], node_size=[size],
-                               node_color='blue', alpha=node_alphas[node], ax=ax)
+        nx.draw_networkx_nodes(G, pos, nodelist=[node], node_size=[size],
+                            node_color='blue', alpha=node_alphas[node], ax=ax)
 
-    nx.draw_networkx_labels(G, circle_pos, font_size=8, ax=ax)
+    # Draw rotated labels with increased distance
+    draw_rotated_labels(G, pos, ax, distance_factor=1.15)  # Adjust distance factor for label positioning
 
+    # Draw edges with gradient colors
+    for u, v, data in G.edges(data=True):
+        draw_edge_with_gradient(u, v, pos, ax, cmap=plt.cm.coolwarm, lw=0.5)
+
+    # Draw edges with gradient colors
     for u, v in G.edges():
-        draw_edge_with_gradient(u, v, circle_pos, ax, lw=1)
+        draw_edge_with_gradient(u, v, pos, ax, lw=1)
 
     plt.axis('off')
     return plt
 
-# Use the filtered_data obtained from the compression process
+# # Use the filtered_data obtained from the compression process
 plot = create_node_link_graph(filtered_data)
-plot.title('Flight Network Graph')
+plt.title('RNNA', y=1.05)
 plot.savefig("RNNA_network_graph.png")
-
+plt.close()

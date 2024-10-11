@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from matplotlib.path import Path
 import matplotlib.patches as mpatches
 
+# Function to round time to the nearest multiple of a given number of minutes
 def round_to_nearest(t, round_to_minute):
     if round_to_minute <= 0 or round_to_minute >= 60:
         raise ValueError("round_to_minute must be between 1 and 59")
@@ -21,6 +22,7 @@ def round_to_nearest(t, round_to_minute):
         full_datetime += timedelta(minutes=(round_to_minute - remainder))
     return full_datetime.time()
 
+# Function to clean the data
 def clean_data(duration):
     data = pd.read_csv("../../../backend/data/flights.csv")
     data = data.dropna()
@@ -104,6 +106,47 @@ def draw_edge_with_gradient(u, v, pos, ax, cmap=plt.cm.coolwarm, lw=1):
         segment_start = spos + (epos - spos) * (j / num_steps)
         segment_end = spos + (epos - spos) * ((j + 1) / num_steps)
         ax.plot([segment_start[0], segment_end[0]], [segment_start[1], segment_end[1]], color=color, lw=lw)
+
+# Function to rotate labels based on their position and adjust distance
+# def draw_rotated_labels(G, pos, ax, distance_factor=1.1):
+#     for node, (x, y) in pos.items():
+#         angle = np.degrees(np.arctan2(y, x))
+#         # Adjust the rotation angle for readability (flip for top vs bottom half)
+#         if x > 0:
+#             rotation = angle
+#         else:
+#             rotation = angle + 180
+
+#         # Adjust label distance from the node
+#         label_x = x * distance_factor
+#         label_y = y * distance_factor
+
+#         ax.text(label_x, label_y, str(node), size=8, rotation=rotation,
+#                 rotation_mode='anchor', ha='center', va='center')
+
+def draw_rotated_labels(G, pos, ax, distance_factor=1.2):
+    for node, (x, y) in pos.items():
+        # Only label nodes that represent whole hours (i.e., minutes and seconds are 0)
+        # if node.minute == 0 and node.second == 0:
+            # Format the label to show only 'HH:MM' in 24-hour format (e.g., '13:00')
+        label = node.strftime("%H:%M")  # 24-hour format
+
+        angle = np.degrees(np.arctan2(y, x))
+        
+        # Adjust the rotation angle for readability (flip for top vs bottom half)
+        if x > 0:
+            rotation = angle
+        else:
+            rotation = angle + 180
+
+        # Adjust label distance from the node
+        label_x = x * distance_factor
+        label_y = y * distance_factor
+
+        # Draw the label at the computed position with rotation
+        ax.text(label_x, label_y, label, size=12, rotation=rotation,
+                rotation_mode='anchor', ha='center', va='center')
+
 # Create the directed graph
 G = nx.DiGraph()
 
@@ -129,25 +172,23 @@ pos = nx.circular_layout(G)
 fig, ax = plt.subplots(figsize=(10, 10))
 
 # Draw nodes with specific alpha values
-for u, v, data in G.edges(data=True):
-    draw_edge_with_gradient(u, v, pos, ax, cmap=plt.cm.coolwarm, lw=0.5)
+for node, size in zip(G.nodes(), node_sizes):
+    nx.draw_networkx_nodes(G, pos, nodelist=[node], node_size=[size],
+                           node_color='blue', alpha=node_alphas[node], ax=ax)
 
-
-# Draw labels
-nx.draw_networkx_labels(G, pos, font_size=8, ax=ax)
+# Draw rotated labels with increased distance
+draw_rotated_labels(G, pos, ax, distance_factor=1.15)  # Adjust distance factor for label positioning
 
 # Draw edges with gradient colors
 for u, v, data in G.edges(data=True):
     draw_edge_with_gradient(u, v, pos, ax, cmap=plt.cm.coolwarm, lw=0.5)
 
-# Draw legend for airlines
-# airlines = filtered_data['name'].unique()
-# handles = [mpatches.Patch(color='blue', label=airline) for airline in airlines]
-# plt.legend(handles=handles, title="Airlines")
-
-# Set plot title and remove axes
-plt.title('Flight Network Graph')
+# Remove axis
 plt.axis('off')
 
-# Save and show the plot
+# Set plot title
+plt.title('PAA', y=1.05)
+
+# Save the plot
 plt.savefig("flight_network_graph.png")
+plt.close()
